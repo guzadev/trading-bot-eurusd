@@ -1,0 +1,7 @@
+type: worker
+name: eurusd-range-bot
+runtime: python
+entrypoint: python main.py
+schedule: always
+env: python
+region: oregon
