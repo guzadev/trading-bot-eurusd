@@ -30,7 +30,7 @@ Este bot utiliza la API de datos históricos de [TraderMade](https://tradermade.
 ## 📌 Caso real de uso personal
 
 > *Utilizo este bot como parte de mi rutina diaria de trading entre las 04:00 y 07:00 UTC, justo en la transición entre la sesión asiática y la apertura europea. A esa hora, el rango asiático ya está definido, y el mercado suele mostrar movimientos típicos de manipulación institucional, como rupturas falsas o barridos de liquidez. El bot me alerta si se produce una ruptura del rango seguida de un reingreso, junto con un cruce de la EMA 21. Condiciones que, combinadas, pueden anticipar una reversión impulsada por Smart Money.
-Cuando recibo esa señal, me acerco al gráfico para hacer un análisis manual: evalúo la estructura de mercado, confirmo un posible cambio de carácter (CHOCH), y reviso si hay zonas de liquidez relevantes o order blocks que refuercen la entrada.*
+Cuando recibo esa señal, me acerco al gráfico para hacer un análisis manual: evalúo la estructura de mercado, confirmo un posible cambio de carácter (CHOCH), y reviso si hay zonas de liquidez relevantes u order blocks que refuercen la entrada.*
 
 Este enfoque **me libera de estar frente al gráfico** todo el tiempo, y me permite actuar solo si ocurre un evento alta probabilidad.  
 El bot es una herramienta de **alerta inteligente, no de ejecución automática**. La decisión final de operar siempre queda bajo mi juicio discrecional.
