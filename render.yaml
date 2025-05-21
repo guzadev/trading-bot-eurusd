@@ -7,8 +7,8 @@ services:
     startCommand: python bot.py
     envVars:
       - key: API_KEY
-        fromEnvVar: API_KEY
+        value: ""
       - key: TELEGRAM_TOKEN
-        fromEnvVar: TELEGRAM_TOKEN
+        value: ""
       - key: TELEGRAM_CHAT_IDS
-        fromEnvVar: TELEGRAM_CHAT_IDS
+        value: ""
