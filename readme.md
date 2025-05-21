@@ -1,18 +1,25 @@
-# 📈 Bot de Trading EUR/USD - Rango Asiático + Ruptura + Reingreso
+# 📈 Bot de Trading EUR/USD - Rango Asiático + Ruptura + Reingreso + Cruce de EMA 21
 
 Este bot está diseñado para complementar una estrategia de trading personal sobre el par **EUR/USD**, basada en la observación de **manipulaciones de mercado** por parte de operadores profesionales durante la apertura europea.
 
 ---
 
 ## 🎯 ¿Qué hace este bot?
+  
+Durante la **Asia Kill Zone** (entre 00:00 y 04:00 UTC), se forma un rango de consolidación que suele actuar como zona de interés institucional.
+El bot entra en funcionamiento a partir de las **04:00 UTC hasta las 07:00 UTC**, monitoreando si el precio **rompe ese rango** y posteriormente **reingresa**. Lo que en algunos días de la semana suele indicar una **manipulación institucional clásica**.
+Luego del reingreso, el bot evalúa el **cruce de la media móvil exponencial de 21 periodos (EMA 21)**. Este cruce puede señalar un **cambio de estructura del mercado**.
+La combinación de **ruptura + reingreso + cruce de la EMA 21** conforma una secuencia técnica que puede indicar una **posible entrada** con mayor probabilidad de éxito.
 
-Este bot monitorea la **ruptura del rango asiático** (entre 00:00 y 04:00 UTC) y luego detecta si el precio **reingresa a ese mismo rango**, lo que en algunos días de la semana suele indicar una **manipulación institucional clásica**.
 
 📤 En cada evento clave, el bot envía una notificación por Telegram:
 - 🚨 **Ruptura Alcista o Bajista**
 - 🔄 **Reingreso al rango** (lo que usualmente precede a un movimiento de reversión)
+- 🟢🔴 **Cruce de la EMA 21**: luego del reingreso, el bot monitorea la media móvil exponencial de 21 periodos (EMA 21). Si detecta un cruce técnico por cierre, envía un aviso
 
 🛑 Una vez que detecta el reingreso, el bot **finaliza automáticamente**, evitando seguir haciendo consultas innecesarias.
+
+---
 
 ## 🛰️ API utilizada
 
@@ -31,39 +38,9 @@ Es una herramienta de **alerta, no de ejecución automática**. El juicio final 
 
 ## 🕒 Horario de Funcionamiento
 
-- Ejecuta **de lunes a viernes** de forma automática
-- Activo de **04:00 a 09:00 UTC**
-- Se apaga solo cuando detecta **reingreso** o llega a las **09:00 UTC**
-
----
-
-## 📬 Notificaciones por Telegram
-
-Podés recibir alertas en más de una cuenta. Solo tenés que configurar los `chat_id` en el script:
-
-```python
-TELEGRAM_CHAT_IDS = ["tu_chat_id", "chat_id_amigo"]
-```
-
----
-
-## 📦 Estructura del Proyecto
-
-```
-bot_render_project/
-├── main.py               # Lógica del bot
-├── requirements.txt      # Librerías necesarias
-└── render.yaml           # Configuración para deploy en Render
-```
-
----
-
-## 🚀 Cómo usarlo
-
-1. Subí el código a GitHub
-2. Desplegalo como Background Worker en [Render.com](https://render.com)
-3. Configurá tu bot de Telegram
-4. Dormí tranquilo... el bot te avisa si pasa algo importante 😴
+- Ejecuta **de lunes a viernes** de forma automática.
+- Activo de **04:00 a 07:00 UTC**.
+- Se apaga solo cuando detecta **Cruce de la EMA 21** o llega a las **07:00 UTC**.
 
 ---
 
@@ -79,16 +56,16 @@ Este bot está diseñado para complementar una estrategia de trading **basada en
   - Detectar una **ruptura del rango asiático**
   - Y luego, un posible **reingreso** al mismo
 - 🔍 Tras el reingreso:
-  - Se hace un **análisis manual** buscando:
+  - Se busca:
     - 📉 **Cambio de estructura**
-    - 📈 **Confirmación con media móvil (ej. EMA20)**
+    - 📈 **Confirmación con media móvil (EMA21)**
   - Esto permite evaluar si hay oportunidad de entrada **larga o corta**, según el caso
 
 ### 🎯 ¿Qué busca capturar esta estrategia?
 
-- Evidencia de **engaño de liquidez institucional**
-- Un movimiento de falsa dirección generado en la apertura europea
-- La posterior **reversión con intención**, típica del comportamiento profesional
+- Evidencia de **engaño de liquidez institucional**.
+- Un movimiento de falsa dirección generado en la apertura europea.
+- La posterior **reversión con intención**, típica del comportamiento profesional.
 
 Este bot **automatiza la vigilancia de los eventos clave**, pero **la entrada es discrecional**, ejecutada por el trader solo tras validación de su plan.
 

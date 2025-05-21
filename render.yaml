@@ -1,7 +1,14 @@
-type: worker
-name: eurusd-range-bot
-runtime: python
-entrypoint: python main.py
-schedule: always
-env: python
-region: oregon
+services:
+  - type: cron
+    name: trading-bot-gap
+    schedule: "0 4 * * 1-5"
+    runtime: python
+    buildCommand: ""
+    startCommand: python bot.py
+    envVars:
+      - key: API_KEY
+        fromEnvVar: API_KEY
+      - key: TELEGRAM_TOKEN
+        fromEnvVar: TELEGRAM_TOKEN
+      - key: TELEGRAM_CHAT_IDS
+        fromEnvVar: TELEGRAM_CHAT_IDS

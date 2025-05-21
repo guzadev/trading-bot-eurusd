@@ -58,7 +58,7 @@ def get_hourly_data():
 def get_minute_data():
     print("[API] Solicitando datos de 1 minuto...")
     now = datetime.now(timezone.utc).replace(second=0, microsecond=0) - timedelta(minutes=1)
-    past = now - timedelta(minutes=5)
+    past = now - timedelta(minutes=105)
 
     url = f"https://marketdata.tradermade.com/api/v1/timeseries?currency={SYMBOL}&api_key={API_KEY}&start_date={past.strftime('%Y-%m-%dT%H:%M:%S')}Z&end_date={now.strftime('%Y-%m-%dT%H:%M:%S')}Z&interval=minute"
     response = requests.get(url)
@@ -98,6 +98,7 @@ def get_asian_range():
 def run_bot():
     print("[BOT] Iniciando bot de trading EUR/USD...")
 
+    # Esperar hasta que termine sesión asiática (04:00 UTC)
     while datetime.now(timezone.utc).hour < 4:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Esperando a que termine sesión asiática...")
         time.sleep(60)
@@ -110,12 +111,14 @@ def run_bot():
 
     breakout_notified = False
     last_breakout = None
+    reentry_detected = False
+    ema_alert_sent = False
 
     while True:
         now = datetime.now(timezone.utc)
 
-        if now.hour >= 9:
-            print(f"[{now.strftime('%H:%M:%S')}] Fin del monitoreo. Hora límite alcanzada (09:00 UTC). Cerrando bot.")
+        if now.hour >= 7:
+            print(f"[{now.strftime('%H:%M:%S')}] Fin del monitoreo. Hora límite alcanzada (07:00 UTC). Cerrando bot.")
             break
 
         try:
@@ -126,30 +129,64 @@ def run_bot():
                 time.sleep(300)
                 continue
 
+            # Calcular EMA 21
+            df_5m['ema21'] = df_5m['close'].ewm(span=21, adjust=False).mean()
+            
+
             last_close = df_5m.iloc[-1]['close']
-            last_high = df_5m.iloc[-1]['high']
-            last_low = df_5m.iloc[-1]['low']
+            # last_high = df_5m.iloc[-1]['high']
+            # last_low = df_5m.iloc[-1]['low']
 
-            if last_high > max_high and not breakout_notified :
-                msg = f"Ruptura ALCISTA detectada: {last_high} > {max_high}"
+            # Evaluar ruptura (pero sin avisar)
+            if last_close > max_high and not breakout_notified:
+                msg = f"📈 [RUPTURA] ALCISTA detectada: {last_close} > {max_high} ⬆️"
                 send_telegram_message(msg)
                 print(msg)
                 breakout_notified = True
-                last_breakout = "up"
+                last_breakout = "alcista"
+                print(f"Ruptura {last_breakout}")
 
-            elif last_low < min_low and not breakout_notified:
-                msg = f"Ruptura BAJISTA detectada: {last_low} < {min_low}"
+            elif last_close < min_low and not breakout_notified:
+                msg = f"📉 [RUPTURA] BAJISTA detectada: {last_close} < {min_low} ⬇️"
                 send_telegram_message(msg)
                 print(msg)
                 breakout_notified = True
-                last_breakout = "down"
+                last_breakout = "bajista"
+                print(f"Ruptura {last_breakout}")
 
-            elif min_low <= last_close <= max_high and last_breakout:
-                msg = f"[REINGRESO] Precio {last_close} dentro de ({min_low}, {max_high}) tras ruptura {last_breakout}"
+            # Evaluar reingreso
+            if min_low < last_close < max_high and last_breakout and not reentry_detected:
+                msg = f"🔁 [REINGRESO] Precio {last_close} dentro de ({min_low}, {max_high}) tras ruptura {last_breakout} 👨🏻‍💻"
                 send_telegram_message(msg)
                 print(msg)
-                print("[BOT] Reingreso detectado. Finalizando ejecución del bot.")
-                break
+                reentry_detected = True
+
+
+            if len(df_5m) < 2:
+                print("[DEBUG] No hay suficientes velas para evaluar cruce de EMA.")
+                continue
+
+            if breakout_notified and reentry_detected and not ema_alert_sent:
+                previous_close = df_5m.iloc[-2]['close']
+                previous_ema = df_5m.iloc[-2]['ema21']
+                current_close = df_5m.iloc[-1]['close']
+                current_ema21 = df_5m.iloc[-1]['ema21']
+
+                if previous_close < previous_ema and current_close > current_ema21:
+                    msg = f"🟢 [EMA 21] Cruce ALCISTA de EMA 21: {previous_close} → {current_close}, cruzando {current_ema21:.5f} 🔀"
+                    send_telegram_message(msg)
+                    print(msg)
+                    ema_alert_sent = True
+                    print("[BOT] Cruce de EMA detectado. Finalizando ejecución del bot.")
+                    break  # 👈 Cierra el bot
+
+                elif previous_close > previous_ema and current_close < current_ema21:
+                    msg = f"🔴 [EMA 21] Cruce BAJISTA de EMA 21: {previous_close} → {current_close}, cruzando {current_ema21:.5f} 🔀"
+                    send_telegram_message(msg)
+                    print(msg)
+                    ema_alert_sent = True
+                    print("[BOT] Cruce de EMA detectado. Finalizando ejecución del bot.")
+                    break  # 👈 Cierra el bot
 
         except Exception as e:
             print(f"[ERROR] Error en el bucle principal: {e}")
