@@ -1,7 +1,7 @@
 services:
   - type: cron
     name: trading-bot-gap
-    schedule: "*/5 * * * *"
+    schedule: "0 4 * * 1-5"
     runtime: python
     buildCommand: pip install -r requirements.txt
     startCommand: python bot-po3-eurusd.py

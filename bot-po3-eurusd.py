@@ -153,7 +153,7 @@ def run_bot():
     while True:
         now = datetime.now(timezone.utc)
 
-        if now.hour >= 7:
+        if now.hour >= 8:
             print(f"[{now.strftime('%H:%M:%S')}] Fin del monitoreo. Hora límite alcanzada (07:00 UTC). Cerrando bot.")
             break
 
@@ -231,6 +231,7 @@ def run_bot():
 
 
 # === EJECUCION ===
+# Ejecutar siempre, sin depender de __name__ (ideal para Render)
 print("Iniciando el main loop principal", flush=True)
 run_bot()
 
