@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from pathlib import Path
 import os
 
-print('BIENVENIDOS')
 
 # Intentar cargar variables desde un archivo .env si estás en local
 try:
@@ -26,7 +25,12 @@ def get_env_var(name):
         raise ValueError(f"La variable de entorno '{name}' no está definida.")
     return value
 
-print('Cargando las variables de entorno')
+print("[DEBUG] Cargando variables...", flush=True)
+print("API_KEY:", os.getenv("API_KEY"), flush=True)
+print("TELEGRAM_TOKEN:", os.getenv("TELEGRAM_TOKEN"), flush=True)
+print("TELEGRAM_CHAT_IDS:", os.getenv("TELEGRAM_CHAT_IDS"), flush=True)
+
+
 # === CONFIGURACION ===
 API_KEY = get_env_var("API_KEY")
 TELEGRAM_TOKEN = get_env_var("TELEGRAM_TOKEN")
