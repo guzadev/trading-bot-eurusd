@@ -7,7 +7,7 @@ from pathlib import Path
 import os
 
 
-# Intentar cargar variables desde un archivo .env si estás en local
+# === INTENTA CARGAR VARIABLES DESDE UN ARCHIVO .ENV ESTANDO EN LOCAL ===
 try:
     from dotenv import load_dotenv
     if Path(".env").exists():
@@ -18,20 +18,16 @@ try:
 except Exception as e:
     print(f"[INFO] dotenv no disponible: {e}", flush=True)
 
-# Función segura para obtener variables obligatorias
+
+# === FUNCION SEGURA PARA OBTENER VARIABLES OBLIGATORIAS ===
 def get_env_var(name):
     value = os.getenv(name)
     if value is None:
         raise ValueError(f"La variable de entorno '{name}' no está definida.")
     return value
 
-print("[DEBUG] Cargando variables...", flush=True)
-print("API_KEY:", os.getenv("API_KEY"), flush=True)
-print("TELEGRAM_TOKEN:", os.getenv("TELEGRAM_TOKEN"), flush=True)
-print("TELEGRAM_CHAT_IDS:", os.getenv("TELEGRAM_CHAT_IDS"), flush=True)
 
-
-# === CONFIGURACION ===
+# === CONFIGURACION: VARIABLES DE ENTORNO Y SIMBOLO ===
 try:
     print("Cargando las variables de entorno", flush=True)
     API_KEY = get_env_var("API_KEY")
@@ -42,10 +38,10 @@ try:
 except Exception as e:
     print(f"[ERROR] Fallo al cargar variables: {e}", flush=True)
     exit(1)
-
 SYMBOL = 'EURUSD'
 
-# === FUNCIONES DE UTILIDAD ===
+
+# === ENVIO DE MENSAJES DE TELEGRAM ===
 def send_telegram_message(message):
     print(f"[TELEGRAM] Enviando mensaje: {message}")
     for chat_id in TELEGRAM_CHAT_IDS:
@@ -60,6 +56,8 @@ def send_telegram_message(message):
         except Exception as e:
             print(f"[ERROR] No se pudo enviar mensaje a {chat_id}: {e}")
 
+
+# === OBTENCION DE VELAS DE 1 HORA ===
 def get_hourly_data():
     print("[API] Solicitando datos horarios (1h)...")
     now = datetime.now(timezone.utc)
@@ -87,6 +85,8 @@ def get_hourly_data():
         print(f"[DEBUG] Contenido de respuesta: {response.text}")
         raise
 
+
+# === OBTENCION DE VELAS DE 1 MINUTO ===
 def get_minute_data():
     print("[API] Solicitando datos de 1 minuto...")
     now = datetime.now(timezone.utc).replace(second=0, microsecond=0) - timedelta(minutes=1)
@@ -107,6 +107,8 @@ def get_minute_data():
         print(f"[DEBUG] Contenido de respuesta: {response.text}")
         raise
 
+
+# === ARMANDO VELAS DE 5 MINUTOS ===
 def consolidate_to_5m(df):
     print("[DATA] Consolidando datos a velas de 5 minutos...")
     df.set_index('date', inplace=True)
@@ -118,6 +120,7 @@ def consolidate_to_5m(df):
     df_5m.dropna(inplace=True)
     return df_5m
 
+
 # === OBTENER RANGO ASIATICO ===
 def get_asian_range():
     df = get_hourly_data()
@@ -125,6 +128,7 @@ def get_asian_range():
     min_low = df['low'].min()
     print(f"[00-04 UTC] Rango Asiatico - MAX: {max_high} / MIN: {min_low}")
     return max_high, min_low
+
 
 # === MAIN LOOP ===
 def run_bot():
@@ -169,7 +173,7 @@ def run_bot():
             # last_high = df_5m.iloc[-1]['high']
             # last_low = df_5m.iloc[-1]['low']
 
-            # Evaluar ruptura (pero sin avisar)
+            # Evaluar ruptura
             if last_close > max_high and not breakout_notified:
                 msg = f"📈 [RUPTURA] ALCISTA detectada: {last_close} > {max_high} ⬆️"
                 send_telegram_message(msg)
@@ -193,7 +197,7 @@ def run_bot():
                 print(msg)
                 reentry_detected = True
 
-
+            # Evaluar cruce de EMA 21
             if len(df_5m) < 2:
                 print("[DEBUG] No hay suficientes velas para evaluar cruce de EMA.")
                 continue
@@ -203,7 +207,7 @@ def run_bot():
                 previous_ema = df_5m.iloc[-2]['ema21']
                 current_close = df_5m.iloc[-1]['close']
                 current_ema21 = df_5m.iloc[-1]['ema21']
-
+                
                 if previous_close < previous_ema and current_close > current_ema21:
                     msg = f"🟢 [EMA 21] Cruce ALCISTA de EMA 21: {previous_close} → {current_close}, cruzando {current_ema21:.5f} 🔀"
                     send_telegram_message(msg)
@@ -225,6 +229,8 @@ def run_bot():
 
         time.sleep(300)
 
-if __name__ == '__main__':
-    print('Iniciando el main loop principal', flush=True)
-    run_bot()
+
+# === EJECUCION ===
+print("Iniciando el main loop principal", flush=True)
+run_bot()
+
