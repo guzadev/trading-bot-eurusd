@@ -7,8 +7,8 @@ services:
     startCommand: python bot-po3-eurusd.py
     envVars:
       - key: API_KEY
-        value: ""
+        fromEnvVar: API_KEY
       - key: TELEGRAM_TOKEN
-        value: ""
+        fromEnvVar: TELEGRAM_TOKEN
       - key: TELEGRAM_CHAT_IDS
-        value: ""
+        fromEnvVar: TELEGRAM_CHAT_IDS
