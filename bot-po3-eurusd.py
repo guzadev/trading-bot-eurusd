@@ -6,12 +6,27 @@ from dotenv import load_dotenv
 import os
 
 print('BIENVENIDOS')
-load_dotenv()
+
+# Intentar cargar variables desde un archivo .env si estás en local
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    print("[INFO] dotenv cargado (modo local)", flush=True)
+except:
+    print("[INFO] No se cargó dotenv (modo producción)", flush=True)
+
+# Función segura para obtener variables obligatorias
+def get_env_var(name):
+    value = os.getenv(name)
+    if value is None:
+        raise ValueError(f"La variable de entorno '{name}' no está definida.")
+    return value
+
 print('Cargando las variables de entorno')
 # === CONFIGURACION ===
-API_KEY = os.getenv("API_KEY")
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-TELEGRAM_CHAT_IDS = os.getenv("TELEGRAM_CHAT_IDS").split(",")
+API_KEY = get_env_var("API_KEY")
+TELEGRAM_TOKEN = get_env_var("TELEGRAM_TOKEN")
+TELEGRAM_CHAT_IDS = get_env_var("TELEGRAM_CHAT_IDS").split(",")
 SYMBOL = 'EURUSD'
 
 # === FUNCIONES DE UTILIDAD ===
