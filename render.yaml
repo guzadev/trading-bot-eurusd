@@ -6,9 +6,6 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: python bot-po3-eurusd.py
     envVars:
-      - key: API_KEY
-        fromEnvVar: API_KEY
-      - key: TELEGRAM_TOKEN
-        fromEnvVar: TELEGRAM_TOKEN
-      - key: TELEGRAM_CHAT_IDS
-        fromEnvVar: TELEGRAM_CHAT_IDS
+      - fromEnvVar: API_KEY
+      - fromEnvVar: TELEGRAM_TOKEN
+      - fromEnvVar: TELEGRAM_CHAT_IDS
