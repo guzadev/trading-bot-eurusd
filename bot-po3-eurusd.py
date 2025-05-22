@@ -5,8 +5,9 @@ from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 import os
 
+print('BIENVENIDOS')
 load_dotenv()
-
+print('Cargando las variables de entorno')
 # === CONFIGURACION ===
 API_KEY = os.getenv("API_KEY")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -94,6 +95,7 @@ def get_asian_range():
     print(f"[00-04 UTC] Rango Asiatico - MAX: {max_high} / MIN: {min_low}")
     return max_high, min_low
 
+print('Iniciando el main loop principal')
 # === MAIN LOOP ===
 def run_bot():
     print("[BOT] Iniciando bot de trading EUR/USD...")
