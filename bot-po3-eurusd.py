@@ -39,7 +39,6 @@ try:
     raw_chat_ids = get_env_var("TELEGRAM_CHAT_IDS")
     print("[DEBUG] raw_chat_ids repr:", repr(raw_chat_ids), flush=True)
     TELEGRAM_CHAT_IDS = [chat_id.strip() for chat_id in raw_chat_ids.split(",")]
-    print('Iniciando el main loop principal', flush=True)
 except Exception as e:
     print(f"[ERROR] Fallo al cargar variables: {e}", flush=True)
     exit(1)
@@ -127,7 +126,6 @@ def get_asian_range():
     print(f"[00-04 UTC] Rango Asiatico - MAX: {max_high} / MIN: {min_low}")
     return max_high, min_low
 
-print('Iniciando el main loop principal')
 # === MAIN LOOP ===
 def run_bot():
     print("[BOT] Iniciando bot de trading EUR/USD...")
@@ -228,4 +226,5 @@ def run_bot():
         time.sleep(300)
 
 if __name__ == '__main__':
+    print('Iniciando el main loop principal', flush=True)
     run_bot()
