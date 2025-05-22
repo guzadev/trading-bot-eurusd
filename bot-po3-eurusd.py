@@ -153,7 +153,7 @@ def run_bot():
     while True:
         now = datetime.now(timezone.utc)
 
-        if now.hour >= 8:
+        if now.hour >= 7:
             print(f"[{now.strftime('%H:%M:%S')}] Fin del monitoreo. Hora límite alcanzada (07:00 UTC). Cerrando bot.")
             break
 
