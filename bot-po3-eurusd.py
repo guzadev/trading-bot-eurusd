@@ -3,6 +3,7 @@ import pandas as pd
 import time
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
+from pathlib import Path
 import os
 
 print('BIENVENIDOS')
@@ -10,10 +11,13 @@ print('BIENVENIDOS')
 # Intentar cargar variables desde un archivo .env si estás en local
 try:
     from dotenv import load_dotenv
-    load_dotenv()
-    print("[INFO] dotenv cargado (modo local)", flush=True)
-except:
-    print("[INFO] No se cargó dotenv (modo producción)", flush=True)
+    if Path(".env").exists():
+        load_dotenv()
+        print("[INFO] dotenv cargado (modo local)", flush=True)
+    else:
+        print("[INFO] No se encontró archivo .env, se usan variables de entorno del sistema", flush=True)
+except Exception as e:
+    print(f"[INFO] dotenv no disponible: {e}", flush=True)
 
 # Función segura para obtener variables obligatorias
 def get_env_var(name):
