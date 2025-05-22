@@ -32,9 +32,18 @@ print("TELEGRAM_CHAT_IDS:", os.getenv("TELEGRAM_CHAT_IDS"), flush=True)
 
 
 # === CONFIGURACION ===
-API_KEY = get_env_var("API_KEY")
-TELEGRAM_TOKEN = get_env_var("TELEGRAM_TOKEN")
-TELEGRAM_CHAT_IDS = get_env_var("TELEGRAM_CHAT_IDS").split(",")
+try:
+    print("Cargando las variables de entorno", flush=True)
+    API_KEY = get_env_var("API_KEY")
+    TELEGRAM_TOKEN = get_env_var("TELEGRAM_TOKEN")
+    raw_chat_ids = get_env_var("TELEGRAM_CHAT_IDS")
+    print("[DEBUG] raw_chat_ids repr:", repr(raw_chat_ids), flush=True)
+    TELEGRAM_CHAT_IDS = [chat_id.strip() for chat_id in raw_chat_ids.split(",")]
+    print('Iniciando el main loop principal', flush=True)
+except Exception as e:
+    print(f"[ERROR] Fallo al cargar variables: {e}", flush=True)
+    exit(1)
+
 SYMBOL = 'EURUSD'
 
 # === FUNCIONES DE UTILIDAD ===
