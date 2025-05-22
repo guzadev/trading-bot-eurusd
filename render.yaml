@@ -5,7 +5,3 @@ services:
     runtime: python
     buildCommand: pip install -r requirements.txt
     startCommand: python bot-po3-eurusd.py
-    envVars:
-      - fromEnvVar: API_KEY
-      - fromEnvVar: TELEGRAM_TOKEN
-      - fromEnvVar: TELEGRAM_CHAT_IDS
