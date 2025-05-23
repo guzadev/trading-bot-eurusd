@@ -168,7 +168,6 @@ def run_bot():
             # Calcular EMA 21
             df_5m['ema21'] = df_5m['close'].ewm(span=21, adjust=False).mean()
             
-
             last_close = df_5m.iloc[-1]['close']
             # last_high = df_5m.iloc[-1]['high']
             # last_low = df_5m.iloc[-1]['low']
@@ -214,7 +213,7 @@ def run_bot():
                     print(msg)
                     ema_alert_sent = True
                     print("[BOT] Cruce de EMA detectado. Finalizando ejecución del bot.")
-                    break  # 👈 Cierra el bot
+                    break  # Cierra el bot
 
                 elif previous_close > previous_ema and current_close < current_ema21:
                     msg = f"🔴 [EMA 21] Cruce BAJISTA de EMA 21: {previous_close} → {current_close}, cruzando {current_ema21:.5f} 🔀"
@@ -222,7 +221,7 @@ def run_bot():
                     print(msg)
                     ema_alert_sent = True
                     print("[BOT] Cruce de EMA detectado. Finalizando ejecución del bot.")
-                    break  # 👈 Cierra el bot
+                    break  # Cierra el bot
 
         except Exception as e:
             print(f"[ERROR] Error en el bucle principal: {e}")
