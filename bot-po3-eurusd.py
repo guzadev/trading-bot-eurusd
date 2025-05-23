@@ -23,6 +23,7 @@ except Exception as e:
 def get_env_var(name):
     value = os.getenv(name)
     if value is None:
+        print(f"[ERROR] La variable de entorno '{name}' no está definida.", flush=True)
         raise ValueError(f"La variable de entorno '{name}' no está definida.")
     return value
 
@@ -73,6 +74,7 @@ def get_hourly_data():
     try:
         data = response.json()
         if 'quotes' not in data:
+            print("[ERROR] No se encontraron 'quotes' en la respuesta de la API.", flush=True)
             raise ValueError("No se encontraron 'quotes' en la respuesta de la API.")
         df = pd.DataFrame(data['quotes'])
         df['date'] = pd.to_datetime(df['date'])
@@ -98,6 +100,7 @@ def get_minute_data():
     try:
         data = response.json()
         if 'quotes' not in data:
+            print("[ERROR] No se encontraron 'quotes' en la respuesta de la API de 1m.", flush=True)
             raise ValueError("No se encontraron 'quotes' en la respuesta de la API de 1m.")
         df = pd.DataFrame(data['quotes'])
         df['date'] = pd.to_datetime(df['date'])
