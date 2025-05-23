@@ -43,7 +43,7 @@ SYMBOL = 'EURUSD'
 
 # === ENVIO DE MENSAJES DE TELEGRAM ===
 def send_telegram_message(message):
-    print(f"[TELEGRAM] Enviando mensaje: {message}")
+    print(f"[TELEGRAM] Enviando mensaje: {message}", flush=True)
     for chat_id in TELEGRAM_CHAT_IDS:
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
         payload = {
@@ -52,14 +52,14 @@ def send_telegram_message(message):
         }
         try:
             response = requests.post(url, data=payload)
-            print(f"[TELEGRAM] Mensaje enviado a {chat_id} (estado: {response.status_code})")
+            print(f"[TELEGRAM] Mensaje enviado a {chat_id} (estado: {response.status_code})", flush=True)
         except Exception as e:
-            print(f"[ERROR] No se pudo enviar mensaje a {chat_id}: {e}")
+            print(f"[ERROR] No se pudo enviar mensaje a {chat_id}: {e}", flush=True)
 
 
 # === OBTENCION DE VELAS DE 1 HORA ===
 def get_hourly_data():
-    print("[API] Solicitando datos horarios (1h)...")
+    print("[API] Solicitando datos horarios (1h)...", flush=True)
     now = datetime.now(timezone.utc)
     today = now.date()
 
@@ -69,7 +69,7 @@ def get_hourly_data():
 
     url = f"https://marketdata.tradermade.com/api/v1/timeseries?currency={SYMBOL}&api_key={API_KEY}&start_date={start.strftime('%Y-%m-%dT%H:%M:%S')}Z&end_date={end.strftime('%Y-%m-%dT%H:%M:%S')}Z&interval=hourly"
     response = requests.get(url)
-    print(f"[API] Código de respuesta: {response.status_code}")
+    print(f"[API] Código de respuesta: {response.status_code}", flush=True)
     try:
         data = response.json()
         if 'quotes' not in data:
@@ -77,24 +77,24 @@ def get_hourly_data():
         df = pd.DataFrame(data['quotes'])
         df['date'] = pd.to_datetime(df['date'])
         df = df[df['date'].dt.hour < 4]  #filtro final
-        print("[INFO] Velas utilizadas para el rango asiático:")
-        print(df[['date', 'open', 'high', 'low', 'close']])
+        print("[INFO] Velas utilizadas para el rango asiático:", flush=True)
+        print(df[['date', 'open', 'high', 'low', 'close']], flush=True)
         return df
     except Exception as e:
-        print(f"[ERROR] Error al parsear JSON de datos horarios: {e}")
-        print(f"[DEBUG] Contenido de respuesta: {response.text}")
+        print(f"[ERROR] Error al parsear JSON de datos horarios: {e}", flush=True)
+        print(f"[DEBUG] Contenido de respuesta: {response.text}", flush=True)
         raise
 
 
 # === OBTENCION DE VELAS DE 1 MINUTO ===
 def get_minute_data():
-    print("[API] Solicitando datos de 1 minuto...")
+    print("[API] Solicitando datos de 1 minuto...", flush=True)
     now = datetime.now(timezone.utc).replace(second=0, microsecond=0) - timedelta(minutes=1)
     past = now - timedelta(minutes=105)
 
     url = f"https://marketdata.tradermade.com/api/v1/timeseries?currency={SYMBOL}&api_key={API_KEY}&start_date={past.strftime('%Y-%m-%dT%H:%M:%S')}Z&end_date={now.strftime('%Y-%m-%dT%H:%M:%S')}Z&interval=minute"
     response = requests.get(url)
-    print(f"[API] Código de respuesta: {response.status_code}")
+    print(f"[API] Código de respuesta: {response.status_code}", flush=True)
     try:
         data = response.json()
         if 'quotes' not in data:
@@ -103,14 +103,14 @@ def get_minute_data():
         df['date'] = pd.to_datetime(df['date'])
         return df
     except Exception as e:
-        print(f"[ERROR] Error al parsear JSON de datos de 1 minuto: {e}")
-        print(f"[DEBUG] Contenido de respuesta: {response.text}")
+        print(f"[ERROR] Error al parsear JSON de datos de 1 minuto: {e}", flush=True)
+        print(f"[DEBUG] Contenido de respuesta: {response.text}", flush=True)
         raise
 
 
 # === ARMANDO VELAS DE 5 MINUTOS ===
 def consolidate_to_5m(df):
-    print("[DATA] Consolidando datos a velas de 5 minutos...")
+    print("[DATA] Consolidando datos a velas de 5 minutos...", flush=True)
     df.set_index('date', inplace=True)
     df_5m = pd.DataFrame()
     df_5m['open'] = df['open'].resample('5min').first()
@@ -126,23 +126,23 @@ def get_asian_range():
     df = get_hourly_data()
     max_high = df['high'].max()
     min_low = df['low'].min()
-    print(f"[00-04 UTC] Rango Asiatico - MAX: {max_high} / MIN: {min_low}")
+    print(f"[00-04 UTC] Rango Asiatico - MAX: {max_high} / MIN: {min_low}", flush=True)
     return max_high, min_low
 
 
 # === MAIN LOOP ===
 def run_bot():
-    print("[BOT] Iniciando bot de trading EUR/USD...")
+    print("[BOT] Iniciando bot de trading EUR/USD...", flush=True)
 
     # Esperar hasta que termine sesión asiática (04:00 UTC)
     while datetime.now(timezone.utc).hour < 4:
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] Esperando a que termine sesión asiática...")
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Esperando a que termine sesión asiática...", flush=True)
         time.sleep(60)
 
     try:
         max_high, min_low = get_asian_range()
     except Exception as e:
-        print(f"[ERROR] No se pudo obtener rango asiático: {e}")
+        print(f"[ERROR] No se pudo obtener rango asiático: {e}", flush=True)
         return
 
     breakout_notified = False
@@ -154,14 +154,14 @@ def run_bot():
         now = datetime.now(timezone.utc)
 
         if now.hour >= 7:
-            print(f"[{now.strftime('%H:%M:%S')}] Fin del monitoreo. Hora límite alcanzada (07:00 UTC). Cerrando bot.")
+            print(f"[{now.strftime('%H:%M:%S')}] Fin del monitoreo. Hora límite alcanzada (07:00 UTC). Cerrando bot.", flush=True)
             break
 
         try:
             df_min = get_minute_data()
             df_5m = consolidate_to_5m(df_min)
             if df_5m.empty:
-                print("[WARNING] No se pudo generar vela 5m, esperando próxima...")
+                print("[WARNING] No se pudo generar vela 5m, esperando próxima...", flush=True)
                 time.sleep(300)
                 continue
 
@@ -176,29 +176,24 @@ def run_bot():
             if last_close > max_high and not breakout_notified:
                 msg = f"📈 [RUPTURA] ALCISTA detectada: {last_close} > {max_high} ⬆️"
                 send_telegram_message(msg)
-                print(msg)
                 breakout_notified = True
                 last_breakout = "alcista"
-                print(f"Ruptura {last_breakout}")
 
             elif last_close < min_low and not breakout_notified:
                 msg = f"📉 [RUPTURA] BAJISTA detectada: {last_close} < {min_low} ⬇️"
                 send_telegram_message(msg)
-                print(msg)
                 breakout_notified = True
                 last_breakout = "bajista"
-                print(f"Ruptura {last_breakout}")
 
             # Evaluar reingreso
             if min_low < last_close < max_high and last_breakout and not reentry_detected:
                 msg = f"🔁 [REINGRESO] Precio {last_close} dentro de ({min_low}, {max_high}) tras ruptura {last_breakout} 👨🏻‍💻"
                 send_telegram_message(msg)
-                print(msg)
                 reentry_detected = True
 
             # Evaluar cruce de EMA 21
             if len(df_5m) < 2:
-                print("[DEBUG] No hay suficientes velas para evaluar cruce de EMA.")
+                print("[DEBUG] No hay suficientes velas para evaluar cruce de EMA.", flush=True)
                 continue
 
             if breakout_notified and reentry_detected and not ema_alert_sent:
@@ -210,21 +205,19 @@ def run_bot():
                 if previous_close < previous_ema and current_close > current_ema21:
                     msg = f"🟢 [EMA 21] Cruce ALCISTA de EMA 21: {previous_close} → {current_close}, cruzando {current_ema21:.5f} 🔀"
                     send_telegram_message(msg)
-                    print(msg)
                     ema_alert_sent = True
-                    print("[BOT] Cruce de EMA detectado. Finalizando ejecución del bot.")
+                    print("[BOT] Cruce de EMA detectado. Finalizando ejecución del bot.", flush=True)
                     break  # Cierra el bot
 
                 elif previous_close > previous_ema and current_close < current_ema21:
                     msg = f"🔴 [EMA 21] Cruce BAJISTA de EMA 21: {previous_close} → {current_close}, cruzando {current_ema21:.5f} 🔀"
                     send_telegram_message(msg)
-                    print(msg)
                     ema_alert_sent = True
-                    print("[BOT] Cruce de EMA detectado. Finalizando ejecución del bot.")
+                    print("[BOT] Cruce de EMA detectado. Finalizando ejecución del bot.", flush=True)
                     break  # Cierra el bot
 
         except Exception as e:
-            print(f"[ERROR] Error en el bucle principal: {e}")
+            print(f"[ERROR] Error en el bucle principal: {e}", flush=True)
 
         time.sleep(300)
 
