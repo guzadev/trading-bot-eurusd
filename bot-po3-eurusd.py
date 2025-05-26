@@ -30,11 +30,11 @@ def get_env_var(name):
 
 # === CONFIGURACION: VARIABLES DE ENTORNO Y SIMBOLO ===
 try:
-    print("Cargando las variables de entorno", flush=True)
+    print("[INFO] Cargando las variables de entorno", flush=True)
     API_KEY = get_env_var("API_KEY")
     TELEGRAM_TOKEN = get_env_var("TELEGRAM_TOKEN")
     raw_chat_ids = get_env_var("TELEGRAM_CHAT_IDS")
-    print("[DEBUG] raw_chat_ids repr:", repr(raw_chat_ids), flush=True)
+    # print("[DEBUG] raw_chat_ids repr:", repr(raw_chat_ids), flush=True)
     TELEGRAM_CHAT_IDS = [chat_id.strip() for chat_id in raw_chat_ids.split(",")]
 except Exception as e:
     print(f"[ERROR] Fallo al cargar variables: {e}", flush=True)
@@ -135,7 +135,7 @@ def get_asian_range():
 
 # === MAIN LOOP ===
 def run_bot():
-    print("[BOT] Iniciando bot de trading EUR/USD...", flush=True)
+    print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] [BOT] Iniciando bot de trading EUR/USD...", flush=True)
 
     # Esperar hasta que termine sesión asiática (04:00 UTC)
     while datetime.now(timezone.utc).hour < 4:
@@ -209,14 +209,14 @@ def run_bot():
                     msg = f"🟢 [EMA 21] Cruce ALCISTA de EMA 21: {previous_close} → {current_close}, cruzando {current_ema21:.5f} 🔀"
                     send_telegram_message(msg)
                     ema_alert_sent = True
-                    print("[BOT] Cruce de EMA detectado. Finalizando ejecución del bot.", flush=True)
+                    print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Cruce de EMA detectado. Finalizando ejecución del bot.", flush=True)
                     break  # Cierra el bot
 
                 elif previous_close > previous_ema and current_close < current_ema21:
                     msg = f"🔴 [EMA 21] Cruce BAJISTA de EMA 21: {previous_close} → {current_close}, cruzando {current_ema21:.5f} 🔀"
                     send_telegram_message(msg)
                     ema_alert_sent = True
-                    print("[BOT] Cruce de EMA detectado. Finalizando ejecución del bot.", flush=True)
+                    print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Cruce de EMA detectado. Finalizando ejecución del bot.", flush=True)
                     break  # Cierra el bot
 
         except Exception as e:
