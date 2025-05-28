@@ -44,7 +44,7 @@ SYMBOL = 'EURUSD'
 
 # === ENVIO DE MENSAJES DE TELEGRAM ===
 def send_telegram_message(message):
-    print(f"[TELEGRAM] Enviando mensaje: {message}", flush=True)
+    print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] [TELEGRAM] Enviando mensaje: {message}", flush=True)
     for chat_id in TELEGRAM_CHAT_IDS:
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
         payload = {
@@ -53,9 +53,9 @@ def send_telegram_message(message):
         }
         try:
             response = requests.post(url, data=payload)
-            print(f"[TELEGRAM] Mensaje enviado a {chat_id} (estado: {response.status_code})", flush=True)
+            print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] [TELEGRAM] Mensaje enviado a {chat_id} (estado: {response.status_code})", flush=True)
         except Exception as e:
-            print(f"[ERROR] No se pudo enviar mensaje a {chat_id}: {e}", flush=True)
+            print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] [ERROR] No se pudo enviar mensaje a {chat_id}: {e}", flush=True)
 
 
 # === OBTENCION DE VELAS DE 1 HORA ===
@@ -178,12 +178,14 @@ def run_bot():
             # Evaluar ruptura
             if last_close > max_high and not breakout_notified:
                 msg = f"📈 [RUPTURA] ALCISTA detectada: {last_close} > {max_high} ⬆️"
+                print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Ruptura detectada.", flush=True)
                 send_telegram_message(msg)
                 breakout_notified = True
                 last_breakout = "alcista"
 
             elif last_close < min_low and not breakout_notified:
                 msg = f"📉 [RUPTURA] BAJISTA detectada: {last_close} < {min_low} ⬇️"
+                print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Ruptura detectada.", flush=True)
                 send_telegram_message(msg)
                 breakout_notified = True
                 last_breakout = "bajista"
@@ -191,6 +193,7 @@ def run_bot():
             # Evaluar reingreso
             if min_low < last_close < max_high and last_breakout and not reentry_detected:
                 msg = f"🔁 [REINGRESO] Precio {last_close} dentro de ({min_low}, {max_high}) tras ruptura {last_breakout} 👨🏻‍💻"
+                print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Reingreso detectado.", flush=True)
                 send_telegram_message(msg)
                 reentry_detected = True
 
@@ -205,15 +208,17 @@ def run_bot():
                 current_close = df_5m.iloc[-1]['close']
                 current_ema21 = df_5m.iloc[-1]['ema21']
                 
-                if previous_close < previous_ema and current_close > current_ema21:
+                if (previous_close < previous_ema and current_close > current_ema21 and min_low < current_close < max_high):
                     msg = f"🟢 [EMA 21] Cruce ALCISTA de EMA 21: {previous_close} → {current_close}, cruzando {current_ema21:.5f} 🔀"
+                    print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Cruce de EMA detectado.", flush=True)
                     send_telegram_message(msg)
                     ema_alert_sent = True
                     print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Cruce de EMA detectado. Finalizando ejecución del bot.", flush=True)
                     break  # Cierra el bot
 
-                elif previous_close > previous_ema and current_close < current_ema21:
+                elif (previous_close > previous_ema and current_close < current_ema21 and min_low < current_close < max_high):
                     msg = f"🔴 [EMA 21] Cruce BAJISTA de EMA 21: {previous_close} → {current_close}, cruzando {current_ema21:.5f} 🔀"
+                    print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Cruce de EMA detectado.", flush=True)
                     send_telegram_message(msg)
                     ema_alert_sent = True
                     print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Cruce de EMA detectado. Finalizando ejecución del bot.", flush=True)
@@ -227,6 +232,6 @@ def run_bot():
 
 # === EJECUCION ===
 # Ejecutar siempre, sin depender de __name__ (ideal para Render)
-print("Iniciando el main loop principal", flush=True)
+print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Iniciando el main loop principal", flush=True)
 run_bot()
 
