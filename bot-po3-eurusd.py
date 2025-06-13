@@ -191,7 +191,7 @@ def run_bot():
                 last_breakout = "bajista"
 
             # Evaluar reingreso
-            if min_low < last_close < max_high and last_breakout and not reentry_detected:
+            elif min_low < last_close < max_high and last_breakout and not reentry_detected:
                 msg = f"🔁 [REINGRESO] Precio {last_close} dentro de ({min_low}, {max_high}) tras ruptura {last_breakout} 👨🏻‍💻"
                 print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Reingreso detectado.", flush=True)
                 send_telegram_message(msg)
@@ -207,22 +207,26 @@ def run_bot():
                 previous_ema = df_5m.iloc[-2]['ema21']
                 current_close = df_5m.iloc[-1]['close']
                 current_ema21 = df_5m.iloc[-1]['ema21']
-                
-                if (previous_close < previous_ema and current_close > current_ema21 and min_low < current_close < max_high):
-                    msg = f"🟢 [EMA 21] Cruce ALCISTA de EMA 21: {previous_close} → {current_close}, cruzando {current_ema21:.5f} 🔀"
-                    print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Cruce de EMA detectado.", flush=True)
-                    send_telegram_message(msg)
-                    ema_alert_sent = True
-                    print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Cruce de EMA detectado. Finalizando ejecución del bot.", flush=True)
-                    break  # Cierra el bot
 
-                elif (previous_close > previous_ema and current_close < current_ema21 and min_low < current_close < max_high):
-                    msg = f"🔴 [EMA 21] Cruce BAJISTA de EMA 21: {previous_close} → {current_close}, cruzando {current_ema21:.5f} 🔀"
-                    print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Cruce de EMA detectado.", flush=True)
-                    send_telegram_message(msg)
-                    ema_alert_sent = True
-                    print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Cruce de EMA detectado. Finalizando ejecución del bot.", flush=True)
-                    break  # Cierra el bot
+                if last_breakout == "bajista":
+                    # Solo aceptar cruce alcista
+                    if (previous_close < previous_ema and current_close > current_ema21 and min_low < current_close < max_high):
+                        msg = f"🟢 [EMA 21] Cruce ALCISTA de EMA 21: {previous_close} → {current_close}, cruzando {current_ema21:.5f} 🔀"
+                        print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Cruce de EMA detectado.", flush=True)
+                        send_telegram_message(msg)
+                        ema_alert_sent = True
+                        print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Cruce de EMA detectado. Finalizando ejecución del bot.", flush=True)
+                        break  # Cierra el bot
+                    
+                elif last_breakout == "alcista":
+                        # Solo aceptar cruce bajista
+                    if (previous_close > previous_ema and current_close < current_ema21 and min_low < current_close < max_high):
+                        msg = f"🔴 [EMA 21] Cruce BAJISTA de EMA 21: {previous_close} → {current_close}, cruzando {current_ema21:.5f} 🔀"
+                        print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Cruce de EMA detectado.", flush=True)
+                        send_telegram_message(msg)
+                        ema_alert_sent = True
+                        print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Cruce de EMA detectado. Finalizando ejecución del bot.", flush=True)
+                        break  # Cierra el bot
 
         except Exception as e:
             print(f"[ERROR] Error en el bucle principal: {e}", flush=True)
