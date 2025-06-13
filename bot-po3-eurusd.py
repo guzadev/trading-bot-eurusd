@@ -156,8 +156,8 @@ def run_bot():
     while True:
         now = datetime.now(timezone.utc)
 
-        if now.hour >= 7:
-            print(f"[{now.strftime('%H:%M:%S')}] Fin del monitoreo. Hora límite alcanzada (07:00 UTC). Cerrando bot.", flush=True)
+        if now.hour >= 8:
+            print(f"[{now.strftime('%H:%M:%S')}] Fin del monitoreo. Hora límite alcanzada (08:00 UTC). Cerrando bot.", flush=True)
             break
 
         try:
@@ -172,19 +172,19 @@ def run_bot():
             df_5m['ema21'] = df_5m['close'].ewm(span=21, adjust=False).mean()
             
             last_close = df_5m.iloc[-1]['close']
-            # last_high = df_5m.iloc[-1]['high']
-            # last_low = df_5m.iloc[-1]['low']
+            last_high = df_5m.iloc[-1]['high']
+            last_low = df_5m.iloc[-1]['low']
 
             # Evaluar ruptura
-            if last_close > max_high and not breakout_notified:
-                msg = f"📈 [RUPTURA] ALCISTA detectada: {last_close} > {max_high} ⬆️"
+            if last_high > max_high and not breakout_notified:
+                msg = f"📈 [RUPTURA] ALCISTA detectada: {last_high} > {max_high} ⬆️"
                 print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Ruptura detectada.", flush=True)
                 send_telegram_message(msg)
                 breakout_notified = True
                 last_breakout = "alcista"
 
-            elif last_close < min_low and not breakout_notified:
-                msg = f"📉 [RUPTURA] BAJISTA detectada: {last_close} < {min_low} ⬇️"
+            elif last_low < min_low and not breakout_notified:
+                msg = f"📉 [RUPTURA] BAJISTA detectada: {last_low} < {min_low} ⬇️"
                 print(f"[{datetime.now(timezone.utc).strftime('%H:%M:%S')}] Ruptura detectada.", flush=True)
                 send_telegram_message(msg)
                 breakout_notified = True
