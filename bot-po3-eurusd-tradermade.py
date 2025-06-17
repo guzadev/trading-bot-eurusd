@@ -39,7 +39,7 @@ try:
 except Exception as e:
     print(f"[ERROR] Fallo al cargar variables: {e}", flush=True)
     exit(1)
-SYMBOL = 'EUR/USD'
+SYMBOL = 'EURUSD'
 
 
 # === ENVIO DE MENSAJES DE TELEGRAM ===
@@ -64,30 +64,21 @@ def get_hourly_data():
     now = datetime.now(timezone.utc)
     today = now.date()
 
-    start = datetime.combine(today, datetime.min.time(), tzinfo=timezone.utc)
-    end = start + timedelta(hours=4)
+    start = datetime.combine(today, datetime.min.time(), tzinfo=timezone.utc) + timedelta(hours=0)  # 00:00 UTC
+    four_am = start + timedelta(hours=4)  # 04:00 UTC exacto
+    end = four_am
 
-    url = (
-        f"https://api.twelvedata.com/time_series"
-        f"?symbol={SYMBOL}"
-        f"&interval=1h"
-        f"&start_date={start.strftime('%Y-%m-%d %H:%M:%S')}"
-        f"&end_date={end.strftime('%Y-%m-%d %H:%M:%S')}"
-        f"&apikey={API_KEY}"
-        f"&timezone=UTC"
-    )
-
+    url = f"https://marketdata.tradermade.com/api/v1/timeseries?currency={SYMBOL}&api_key={API_KEY}&start_date={start.strftime('%Y-%m-%dT%H:%M:%S')}Z&end_date={end.strftime('%Y-%m-%dT%H:%M:%S')}Z&interval=hourly"
     response = requests.get(url)
     print(f"[API] Código de respuesta: {response.status_code}", flush=True)
     try:
         data = response.json()
-        if 'values' not in data:
-            raise ValueError("No se encontraron 'values' en la respuesta de la API.")
-        df = pd.DataFrame(data['values'])
-        df['datetime'] = pd.to_datetime(df['datetime'])
-        df.rename(columns={'datetime': 'date'}, inplace=True)
-        df[['open', 'high', 'low', 'close']] = df[['open', 'high', 'low', 'close']].astype(float)
-        df = df[df['date'].dt.hour < 4]
+        if 'quotes' not in data:
+            print("[ERROR] No se encontraron 'quotes' en la respuesta de la API.", flush=True)
+            raise ValueError("No se encontraron 'quotes' en la respuesta de la API.")
+        df = pd.DataFrame(data['quotes'])
+        df['date'] = pd.to_datetime(df['date'])
+        df = df[df['date'].dt.hour < 4]  #filtro final
         print("[INFO] Velas utilizadas para el rango asiático:", flush=True)
         print(df[['date', 'open', 'high', 'low', 'close']], flush=True)
         return df
@@ -97,39 +88,40 @@ def get_hourly_data():
         raise
 
 
-
-# === OBTENCION DE VELAS DE 5 MINUTOS ===
-def get_5min_data():
-    print("[API] Solicitando velas de 5 minutos...", flush=True)
-    now = datetime.now(timezone.utc).replace(second=0, microsecond=0)
+# === OBTENCION DE VELAS DE 1 MINUTO ===
+def get_minute_data():
+    print("[API] Solicitando datos de 1 minuto...", flush=True)
+    now = datetime.now(timezone.utc).replace(second=0, microsecond=0) - timedelta(minutes=1)
     past = now - timedelta(minutes=105)
 
-    url = (
-        f"https://api.twelvedata.com/time_series"
-        f"?symbol={SYMBOL}"
-        f"&interval=5min"
-        f"&start_date={past.strftime('%Y-%m-%d %H:%M:%S')}"
-        f"&end_date={now.strftime('%Y-%m-%d %H:%M:%S')}"
-        f"&apikey={API_KEY}"
-        f"&timezone=UTC"
-    )
-
+    url = f"https://marketdata.tradermade.com/api/v1/timeseries?currency={SYMBOL}&api_key={API_KEY}&start_date={past.strftime('%Y-%m-%dT%H:%M:%S')}Z&end_date={now.strftime('%Y-%m-%dT%H:%M:%S')}Z&interval=minute"
     response = requests.get(url)
     print(f"[API] Código de respuesta: {response.status_code}", flush=True)
     try:
         data = response.json()
-        if 'values' not in data:
-            raise ValueError("No se encontraron 'values' en la respuesta de la API.")
-        df = pd.DataFrame(data['values'])
-        df['datetime'] = pd.to_datetime(df['datetime'])
-        df.rename(columns={'datetime': 'date'}, inplace=True)
-        df[['open', 'high', 'low', 'close']] = df[['open', 'high', 'low', 'close']].astype(float)
-        df.sort_values('date', inplace=True)  # Importante para orden cronológico
+        if 'quotes' not in data:
+            print("[ERROR] No se encontraron 'quotes' en la respuesta de la API de 1m.", flush=True)
+            raise ValueError("No se encontraron 'quotes' en la respuesta de la API de 1m.")
+        df = pd.DataFrame(data['quotes'])
+        df['date'] = pd.to_datetime(df['date'])
         return df
     except Exception as e:
-        print(f"[ERROR] Error al parsear JSON de datos 5m: {e}", flush=True)
+        print(f"[ERROR] Error al parsear JSON de datos de 1 minuto: {e}", flush=True)
         print(f"[DEBUG] Contenido de respuesta: {response.text}", flush=True)
         raise
+
+
+# === ARMANDO VELAS DE 5 MINUTOS ===
+def consolidate_to_5m(df):
+    print("[DATA] Consolidando datos a velas de 5 minutos...", flush=True)
+    df.set_index('date', inplace=True)
+    df_5m = pd.DataFrame()
+    df_5m['open'] = df['open'].resample('5min').first()
+    df_5m['high'] = df['high'].resample('5min').max()
+    df_5m['low'] = df['low'].resample('5min').min()
+    df_5m['close'] = df['close'].resample('5min').last()
+    df_5m.dropna(inplace=True)
+    return df_5m
 
 
 # === OBTENER RANGO ASIATICO ===
@@ -169,7 +161,8 @@ def run_bot():
             break
 
         try:
-            df_5m = get_5min_data()
+            df_min = get_minute_data()
+            df_5m = consolidate_to_5m(df_min)
             if df_5m.empty:
                 print("[WARNING] No se pudo generar vela 5m, esperando próxima...", flush=True)
                 time.sleep(300)
